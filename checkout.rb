@@ -1,7 +1,7 @@
 class Checkout
-  PRODUCTS = {001 => {:name => "Lavender heart", :price => 9.25},
-              002 => {:name => "Personalised cufflinks", :price => 45.00},
-              003 => {:name => "Kids T-shirt", :price => 19.95}}
+  PRODUCTS = {"FR1" => {:name => "Fruit tea", :price => 3.11},
+              "SR1" => {:name => "Strawberry", :price => 5.00},
+              "CF1" => {:name => "Coffee", :price => 11.23}}
 
   def initialize(rules)
     @scanned = {}
@@ -14,19 +14,19 @@ class Checkout
   end
 
   def total
-    @rules.total_with_discount calculate_total
-  end
-
-  private
-
-  def calculate_total
     @scanned.keys.inject(0) do |sum, product|
       sum += calculate_cost product, @scanned[product]
     end
   end
 
+  private
+
   def calculate_cost(product, quantity)
-    quantity * calculate_price(product, quantity)
+    calculate_quantity(product, quantity) * calculate_price(product, quantity)
+  end
+
+  def calculate_quantity(product, quantity)
+    @rules.quantity(product, quantity)
   end
 
   def calculate_price(product, quantity)
@@ -41,14 +41,18 @@ class PromotionalRules
   end
 
   def price(product, price, quantity)
-    has_promotion?(product) && eligible?(product, quantity) ? promotion_price(product) : price
+    has_promotion?(product) && eligible_price?(product, quantity) ? promotion_price(product) : price
   end
 
-  def total_with_discount(total)
-    discount?(total) ? with_discount(total) : total
+  def quantity(product, scanned)
+    has_promotion?(product) && eligible_quantity?(product) ? promotion_quantity(product, scanned) : scanned
   end
 
   private
+
+  def promotion_quantity(product, scanned)
+    scanned - Integer(scanned / (@rules[:product][product][:quantity] + @rules[:product][product][:free]))
+  end
 
   def promotion_price(product)
     @rules[:product][product][:price]
@@ -58,16 +62,11 @@ class PromotionalRules
     @rules[:product] && @rules[:product][product]
   end
 
-  def eligible?(product, quantity)
-    @rules[:product][product][:quantity] <= quantity
+  def eligible_price?(product, quantity)
+    quantity >= @rules[:product][product][:quantity] && @rules[:product][product][:price]
   end
 
-  def with_discount(total)
-    total -= total * @rules[:total][:discount]
-    total.round(2)
-  end
-
-  def discount?(total)
-    @rules[:total] && total > @rules[:total][:over]
+  def eligible_quantity?(product)
+    @rules[:product][product][:free]
   end
 end

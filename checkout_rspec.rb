@@ -5,37 +5,34 @@ describe Checkout do
     checkout.should == 0
   end
 
-  it "tells me to pay 9.25 when buying one Lavender heart" do
-    checkout(001).should == 9.25
+  it "tells me to pay 5.00 when buying one Strawberry" do
+    checkout("SR1").should == 5.00
   end
 
-  it "tells me to pay 39.90 when buying two Kids t-shirts" do
-    checkout(003, 003).should == 39.90
+  it "tells me to pay 22.46 when buying two Kids t-shirts" do
+    checkout("CF1", "CF1").should == 22.46
   end
 
-  it "tells me to pay 81 when buying two Personalised cufflinks" do
-    checkout(002, 002).should == 81.00
+  it "tells me to pay 3.11 when buying two Fruit teas" do
+    checkout("FR1", "FR1").should == 3.11
   end
 
-  it "tells me to pay 17.00 when buying two Lavender hearts" do
-    checkout(001, 001).should == 17.00
+  it "tells me to pay 13.50 when buying three Strawberries" do
+    checkout("SR1", "SR1", "SR1").should == 13.50
   end
 
-  it "tells me to pay 66.78 with 001,002,003" do
-    checkout(001, 002, 003).should == 66.78
+  # the test has a mistake in this one
+  it "tells me to pay 19.34 with FR1, SR1, FR1, CF1" do
+    checkout("FR1", "SR1", "FR1", "CF1").should == 19.34
   end
 
-  it "tells me to pay 36.95 with 001,003,001" do
-    checkout(001, 003, 001).should == 36.95
-  end
-
-  it "tells me to pay 73.76 with 001,002,001,003" do
-    checkout(001, 002, 001, 003).should == 73.76
+  it "tells me to pay 16.61 with SR1, SR1, FR1, SR1" do
+    checkout("SR1", "SR1", "FR1", "SR1").should == 16.61
   end
 
   def checkout(*scans)
-    rules = {:total => {:over => 60.00, :discount => 0.10},
-             :product => {001 => {:quantity => 2, :price => 8.50}}}
+    rules = {:product => {"SR1" => {:quantity => 3, :price => 4.50},
+                          "FR1" => {:quantity => 1, :free => 1}}}
     c = Checkout.new(PromotionalRules.new rules)
     scans.each { |s| c.scan s }
     c.total
